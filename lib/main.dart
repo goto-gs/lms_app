@@ -1,39 +1,89 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+// Simple auth state provider
+final authProvider = StateProvider<bool>((ref) => false);
+
+GoRouterRedirect authGuard(Ref ref) {
+  return (context, state) {
+    final isLoggedIn = ref.read(authProvider);
+
+    if (!isLoggedIn && state.matchedLocation != '/') {
+      return '/';
+    }
+    return null;
+  };
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+// GoRouter setup with Riverpod
+final goRouterProvider = Provider<GoRouter>((ref) {
+  return GoRouter(
+    initialLocation: '/',
+    redirect: authGuard(ref),
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) =>
+            const MyHomePage(title: 'Flutter Demo Home Page'),
+      ),
+      GoRoute(
+        path: '/dashboard',
+        builder: (context, state) => const DashboardPage(),
+      ),
+      GoRoute(
+        path: '/course/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return CoursePage(courseId: id);
+        },
+      ),
+    ],
+  );
+});
 
-  // This widget is the root of your application.
+// Dummy pages for demonstration
+class DashboardPage extends StatelessWidget {
+  const DashboardPage({super.key});
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Dashboard')),
+    body: const Center(
+      child: Text('ここがダッシュボード画面です', style: TextStyle(fontSize: 20)),
+    ),
+  );
+}
+
+class CoursePage extends StatelessWidget {
+  final String courseId;
+  const CoursePage({super.key, required this.courseId});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text('Course $courseId')),
+    body: Center(
+      child: Text('Course ID: $courseId', style: TextStyle(fontSize: 20)),
+    ),
+  );
+}
+
+// Wrap MaterialApp with ProviderScope & use GoRouter
+class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(goRouterProvider);
+    return MaterialApp.router(
+      routerConfig: router,
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
+
+void main() => runApp(const ProviderScope(child: MyApp()));
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
