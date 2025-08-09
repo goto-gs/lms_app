@@ -19,7 +19,7 @@ GoRouterRedirect authGuard(Ref ref) {
 
 // GoRouter setup with Riverpod
 final goRouterProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: '/',
     redirect: authGuard(ref),
     routes: [
@@ -41,6 +41,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  ref.listen<bool>(authProvider, (_, __) => router.refresh());
+
+  return router;
 });
 
 // Dummy pages for demonstration
