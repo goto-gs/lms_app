@@ -1,0 +1,20 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "flutter_run_analyze",
+			"type": "shell",
+			"command": "flutter --version; dart --version; flutter pub get; flutter analyze"
+		},
+		{
+			"label": "flutter_test",
+			"type": "shell",
+			"command": "flutter test"
+		},
+		{
+			"label": "flutter_test_retry",
+			"type": "shell",
+			"command": "flutter test"
+		}
+	]
+}
