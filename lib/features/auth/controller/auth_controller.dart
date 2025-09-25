@@ -1,69 +1,63 @@
 import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../domain/auth_repository.dart';
 import '../data/local_auth_repository.dart';
+import '../domain/auth_repository.dart';
 
 class AuthState {
   final bool isLoading;
   final String? userId;
   final String? error;
-
   const AuthState({this.isLoading = false, this.userId, this.error});
 
-  AuthState copyWith({bool? isLoading, String? userId, String? error}) {
-    return AuthState(
-      isLoading: isLoading ?? this.isLoading,
-      userId: userId ?? this.userId,
-      error: error,
-    );
-  }
+  AuthState copyWith({bool? isLoading, String? userId, String? error}) =>
+      AuthState(
+        isLoading: isLoading ?? this.isLoading,
+        userId: userId,
+        error: error,
+      );
 }
 
 class AuthController extends StateNotifier<AuthState> {
-  AuthController(this._repo) : super(const AuthState()) {
-    _sub = _repo.authStateChanges().listen((uid) {
-      state = state.copyWith(userId: uid, isLoading: false, error: null);
+  final AuthRepository _repo;
+  late final StreamSubscription _sub;
+
+  AuthController(this._repo) : super(AuthState(userId: _repo.currentUserId)) {
+    _sub = _repo.authStateChanges().listen((id) {
+      state = state.copyWith(isLoading: false, userId: id, error: null);
     });
   }
 
-  final AuthRepository _repo;
-  StreamSubscription<String?>? _sub;
-
   Future<void> signIn(String email, String password) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, error: null, userId: state.userId);
     try {
-      final uid = await _repo.signIn(email: email, password: password);
-      state = state.copyWith(userId: uid, isLoading: false, error: null);
+      await _repo.signIn(email: email, password: password);
+      // 成功時は repo 側のストリームで userId が入る
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+        userId: null,
+      );
     }
   }
 
   Future<void> signOut() async {
-    state = state.copyWith(isLoading: true, error: null);
     await _repo.signOut();
-    state = state.copyWith(isLoading: false);
+    // ★ 念のため即時に userId を null に（ストリームを待たない）
+    state = state.copyWith(isLoading: false, error: null, userId: null);
   }
 
   @override
   void dispose() {
-    _sub?.cancel();
+    _sub.cancel();
     super.dispose();
   }
 }
 
-// Providers
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  final repo = LocalAuthRepository();
-  ref.onDispose(() => repo.dispose());
-  return repo;
+  return LocalAuthRepository();
 });
 
 final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
-  (ref) {
-    final repo = ref.watch(authRepositoryProvider);
-    return AuthController(repo);
-  },
+  (ref) => AuthController(ref.watch(authRepositoryProvider)),
 );
