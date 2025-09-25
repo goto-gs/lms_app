@@ -10,7 +10,7 @@ import 'package:lms_app/main.dart';
 import 'package:lms_app/features/auth/presentation/login_page.dart';
 
 class _TestAuthRepository implements AuthRepository {
-  _TestAuthRepository({this.currentUserId});
+  _TestAuthRepository();
 
   @override
   String? currentUserId;
@@ -23,7 +23,10 @@ class _TestAuthRepository implements AuthRepository {
   Stream<String?> authStateChanges() => _controller.stream;
 
   @override
-  Future<String> signIn({required String email, required String password}) async {
+  Future<String> signIn({
+    required String email,
+    required String password,
+  }) async {
     if (shouldThrow) {
       throw Exception('Invalid credentials');
     }
@@ -39,14 +42,15 @@ class _TestAuthRepository implements AuthRepository {
   }
 }
 
-Future<void> _pumpApp(WidgetTester tester, AuthRepository repository,
-    {Widget? child}) async {
+Future<void> _pumpApp(
+  WidgetTester tester,
+  AuthRepository repository, {
+  Widget? child,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [authRepositoryProvider.overrideWithValue(repository)],
-      child: MaterialApp(
-        home: child ?? const LoginPage(),
-      ),
+      child: MaterialApp(home: child ?? const LoginPage()),
     ),
   );
   await tester.pumpAndSettle();
@@ -54,8 +58,9 @@ Future<void> _pumpApp(WidgetTester tester, AuthRepository repository,
 
 void main() {
   group('LoginPage', () {
-    testWidgets('should show validation errors when email/password invalid',
-        (tester) async {
+    testWidgets('should show validation errors when email/password invalid', (
+      tester,
+    ) async {
       // Arrange
       final repo = _TestAuthRepository();
       await _pumpApp(tester, repo);
@@ -69,7 +74,10 @@ void main() {
       expect(find.text('Enter password'), findsOneWidget);
 
       // Act
-      await tester.enterText(find.widgetWithText(TextFormField, 'Email'), 'abc');
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Email'),
+        'abc',
+      );
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Password'),
         '123',
@@ -82,8 +90,9 @@ void main() {
       expect(find.text('Min 6 characters'), findsOneWidget);
     });
 
-    testWidgets('should call signIn and navigate to Dashboard on success',
-        (tester) async {
+    testWidgets('should call signIn and navigate to Dashboard on success', (
+      tester,
+    ) async {
       // Arrange
       final repo = _TestAuthRepository();
       await tester.pumpWidget(

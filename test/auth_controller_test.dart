@@ -7,7 +7,7 @@ import 'package:lms_app/features/auth/controller/auth_controller.dart';
 import 'package:lms_app/features/auth/domain/auth_repository.dart';
 
 class _TestAuthRepository implements AuthRepository {
-  _TestAuthRepository({this.currentUserId});
+  _TestAuthRepository();
 
   @override
   String? currentUserId;
@@ -22,7 +22,10 @@ class _TestAuthRepository implements AuthRepository {
   Stream<String?> authStateChanges() => _controller.stream;
 
   @override
-  Future<String> signIn({required String email, required String password}) async {
+  Future<String> signIn({
+    required String email,
+    required String password,
+  }) async {
     if (shouldThrow) {
       throw Exception('Invalid credentials');
     }
