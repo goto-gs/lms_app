@@ -15,6 +15,11 @@
 			"label": "flutter_test_retry",
 			"type": "shell",
 			"command": "flutter test"
+		},
+		{
+			"label": "flutter_run_analyze",
+			"type": "shell",
+			"command": "flutter --version; dart --version; flutter pub get; flutter analyze"
 		}
 	]
 }
