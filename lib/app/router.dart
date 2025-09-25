@@ -9,10 +9,13 @@ import '../features/dashboard/presentation/dashboard_page.dart';
 
 /// GoRouter configured with Riverpod-based redirect logic and a login route.
 final routerProvider = Provider<GoRouter>((ref) {
-  String? redirectLogic(BuildContext context, GoRouterState state) {
+  String? redirectGuard(BuildContext context, GoRouterState state) {
     final auth = ref.read(authControllerProvider);
     final loggedIn = auth.userId != null;
-    final loggingIn = state.matchedLocation == '/login';
+
+    // go_router 現行版: matchedLocation / uri が使えます
+    final loc = state.matchedLocation; // e.g. "/login"
+    final loggingIn = loc == '/login';
 
     if (!loggedIn && !loggingIn) return '/login';
     if (loggedIn && loggingIn) return '/dashboard';
@@ -20,8 +23,9 @@ final routerProvider = Provider<GoRouter>((ref) {
   }
 
   final router = GoRouter(
+    // 未ログインは redirect で /login へ飛ぶ前提
     initialLocation: '/dashboard',
-    redirect: redirectLogic,
+    redirect: redirectGuard,
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(
@@ -38,8 +42,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 
-  // Refresh router when auth state changes so redirect re-evaluates.
+  // Auth 状態変化で redirect を再評価
   ref.listen(authControllerProvider, (_, __) => router.refresh());
-
   return router;
 });
