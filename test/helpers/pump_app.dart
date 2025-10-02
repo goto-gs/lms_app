@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:lms_app/app/router.dart';
-import 'package:lms_app/features/auth/controller/auth_controller.dart';
+
 import 'package:lms_app/features/auth/domain/auth_repository.dart';
 import 'package:lms_app/main.dart';
 
@@ -14,8 +14,8 @@ class TestAuthRepository implements AuthRepository {
   String? _currentUserId;
   late final StreamController<String?> _controller =
       StreamController<String?>.broadcast(
-    onListen: () => _controller.add(_currentUserId),
-  );
+        onListen: () => _controller.add(_currentUserId),
+      );
 
   @override
   String? get currentUserId => _currentUserId;
@@ -58,10 +58,7 @@ Future<void> pumpAppWithRouter(
   }
 
   await tester.pumpWidget(
-    UncontrolledProviderScope(
-      container: container,
-      child: const MyApp(),
-    ),
+    UncontrolledProviderScope(container: container, child: const MyApp()),
   );
 
   await tester.pump();
