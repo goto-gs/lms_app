@@ -30,6 +30,11 @@
 			"label": "flutter_run_analyze",
 			"type": "shell",
 			"command": "flutter --version; dart --version; flutter pub get; flutter analyze"
+		},
+		{
+			"label": "flutter_run_analyze",
+			"type": "shell",
+			"command": "flutter --version; dart --version; flutter pub get; flutter analyze"
 		}
 	]
 }
